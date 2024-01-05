@@ -6,6 +6,7 @@ import "~/styles/globals.css";
 import { Space_Grotesk } from "next/font/google";
 import Head from "next/head";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "~/components/global/theme-provider";
 
 const fonts = Space_Grotesk({
   weight: ["400", "700"],
@@ -24,9 +25,16 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       </Head>
       <div className="flex items-start">
         <div className="min-h-screen flex-grow border-x">
-          <ClerkProvider>
-            <Component {...pageProps} />
-          </ClerkProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ClerkProvider>
+              <Component {...pageProps} />
+            </ClerkProvider>
+          </ThemeProvider>
         </div>
       </div>
     </main>
