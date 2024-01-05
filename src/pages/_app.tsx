@@ -3,8 +3,9 @@ import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
-import { Space_Grotesk } from 'next/font/google'
+import { Space_Grotesk } from "next/font/google";
 import Head from "next/head";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const fonts = Space_Grotesk({
   weight: ["400", "700"],
@@ -23,11 +24,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       </Head>
       <div className="flex items-start">
         <div className="min-h-screen flex-grow border-x">
+          <ClerkProvider>
             <Component {...pageProps} />
+          </ClerkProvider>
         </div>
       </div>
     </main>
-);
+  );
 };
 
 export default api.withTRPC(MyApp);
