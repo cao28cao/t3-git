@@ -14,11 +14,48 @@ import {
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { useTheme } from "next-themes";
 
-import { api } from "~/utils/api";
+import { RouterOutputs, api } from "~/utils/api";
+import { Input } from "~/components/ui/input";
+
+const CreatePostWizard = () => {
+  const { user } = useUser();
+  console.log(user);
+  if (!user) return null;
+
+  return (
+    <div className="mx-2 mt-4 flex flex-row">
+      <img
+        src={user.imageUrl}
+        alt="Profile Image"
+        className="h-14 w-14 rounded-full"
+      />
+      <Input placeholder="What's on your mind?" type="text" />
+    </div>
+  );
+};
+
+type PostWithUser = RouterOutputs["post"]["getAll"][number];
+const PostView = (props: PostWithUser) => {
+  const {post, author} = props;
+  return (
+    <div key={post.id} className="mx-2 mt-4 flex flex-row">
+      <img
+        src={author?.imageUrl}
+        alt="Profile Image"
+        className="h-14 w-14 rounded-full"
+      />
+      <div className="flex flex-col">
+        <div className="text-sm">{post.content}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const user = useUser();
-  const { data } = api.post.getAll.useQuery();
+  const { data, isLoading } = api.post.getAll.useQuery();
+  if (!data) return <div>Something is not gud</div>;
+  if (isLoading) return <div>Loading...</div>;
 
   const { setTheme } = useTheme();
 
@@ -30,8 +67,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex h-screen justify-center">
-        <div className="h-full w-full border-x border-slate-400 md:max-w-3xl border-spacing-2">
-          <div className="flex h-[40px] flex-row gap-2 mt-2">
+        <div className="h-full w-full border-spacing-2 border-x border-slate-400 md:max-w-3xl">
+          <div className="mt-2 flex h-[40px] flex-row gap-2">
             <div className="ml-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -68,11 +105,11 @@ export default function Home() {
             </div>
             <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
           </div>
-          <div className="border-t border-slate-200 mt-4">
-            {data?.map((post) => (
-              <div key={post.id} className="">
-                {post.content}
-              </div>
+          {user.isSignedIn && <CreatePostWizard />}
+
+          <div className="mt-4 border-t border-slate-200">
+            {[...data, ...data]?.map((fullPost) => (
+              <PostView {...fullPost} />
             ))}
           </div>
         </div>
