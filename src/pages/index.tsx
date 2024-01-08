@@ -1,6 +1,7 @@
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -17,45 +18,101 @@ import { useTheme } from "next-themes";
 import { RouterOutputs, api } from "~/utils/api";
 import { Input } from "~/components/ui/input";
 
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { LoadingPage, LoadingSpinner } from "~/components/global/loading";
+import { useState } from "react";
+
+dayjs.extend(relativeTime);
+
 const CreatePostWizard = () => {
   const { user } = useUser();
   console.log(user);
   if (!user) return null;
 
+  const [input, setInput] = useState<string>("");
+  const { mutate } = api.post.create.useMutation();
+
   return (
-    <div className="mx-2 mt-4 flex flex-row">
-      <img
+    <div className="mx-2 mt-4 flex flex-row gap-2">
+      <Image
         src={user.imageUrl}
         alt="Profile Image"
-        className="h-14 w-14 rounded-full"
+        className="rounded-full"
+        width={56}
+        height={56}
       />
-      <Input placeholder="What's on your mind?" type="text" />
+      <Input 
+        placeholder="What's on your mind?"
+        value={input}
+        type="text"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            mutate({ content: input });
+            setInput("");
+          }
+        }}
+        onChange={(e) => setInput(e.target.value)}
+      />
+      <Button
+        onClick={() => {
+          mutate({ content: input });
+          setInput("");
+        }}
+      >Post</Button>
     </div>
   );
 };
 
 type PostWithUser = RouterOutputs["post"]["getAll"][number];
 const PostView = (props: PostWithUser) => {
-  const {post, author} = props;
+  const { post, author } = props;
   return (
-    <div key={post.id} className="mx-2 mt-4 flex flex-row">
-      <img
-        src={author?.imageUrl}
+    <div
+      key={post.id}
+      className="mx-2 mt-2 flex border-spacing-1 flex-row gap-4 border-b py-2"
+    >
+      <Image
+        src={author?.profileImageUrl || "https://i.pravatar.cc/300"}
         alt="Profile Image"
-        className="h-14 w-14 rounded-full"
+        className="rounded-full"
+        width={56}
+        height={56}
       />
-      <div className="flex flex-col">
+      <div className="items-left flex flex-col justify-center">
+        <div className="">
+          <span className="font-bold">{`@${author.username}`}</span>
+          <span className="font-thin">{` · ${dayjs(
+            post.createdAt,
+          ).fromNow()}`}</span>
+        </div>
         <div className="text-sm">{post.content}</div>
       </div>
     </div>
   );
-}
+};
+
+const Feed = () => {
+  const { data, isLoading: postsLoading } = api.post.getAll.useQuery();
+
+  if (postsLoading) return <LoadingPage />;
+
+  if (!data) return <div>Something is not gud</div>;
+
+  return (
+    <div className="mt-4 border-t border-slate-200">
+      {[...data].map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
 
 export default function Home() {
-  const user = useUser();
-  const { data, isLoading } = api.post.getAll.useQuery();
-  if (!data) return <div>Something is not gud</div>;
-  if (isLoading) return <div>Loading...</div>;
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
+  api.post.getAll.useQuery();
+
+  if (!userLoaded) return <div />;
 
   const { setTheme } = useTheme();
 
@@ -92,12 +149,12 @@ export default function Home() {
               </DropdownMenu>
             </div>
             <div className="min-h-screen flex-col items-center justify-center">
-              {!user.isSignedIn && (
+              {!isSignedIn && (
                 <Button>
                   <SignInButton />
                 </Button>
               )}
-              {!!user.isSignedIn && (
+              {isSignedIn && (
                 <Button>
                   <SignOutButton />
                 </Button>
@@ -105,13 +162,8 @@ export default function Home() {
             </div>
             <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
           </div>
-          {user.isSignedIn && <CreatePostWizard />}
-
-          <div className="mt-4 border-t border-slate-200">
-            {[...data, ...data]?.map((fullPost) => (
-              <PostView {...fullPost} />
-            ))}
-          </div>
+          {isSignedIn && <CreatePostWizard />}
+          <Feed />
         </div>
       </main>
     </>
