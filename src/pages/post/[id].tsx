@@ -6,13 +6,7 @@ import { useTheme } from "next-themes";
 import { RouterOutputs, api } from "~/utils/api";
 
 const SinglePostPage: NextPage = () => {
-  const { isLoaded: userLoaded, isSignedIn } = useUser();
-  api.post.getAll.useQuery();
-
-   if (!userLoaded) return <div />;
-
-  const { setTheme } = useTheme();
-
+  
   return (
     <>
       <Head>
@@ -27,6 +21,6 @@ const SinglePostPage: NextPage = () => {
       </main>
     </>
   );
-}
+};
 
 export default SinglePostPage;
