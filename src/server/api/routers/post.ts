@@ -17,10 +17,27 @@ const filterUserForClient = (user: User) => {
   };
 };
 
+import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
+import { Redis } from "@upstash/redis"; // see below for cloudflare and fastly adapters
+
+// Create a new ratelimiter, that allows 3 requests per 30 seconds
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(3, "30 s"),
+  analytics: true,
+  /**
+   * Optional prefix for the keys used in redis. This is useful if you want to share a redis
+   * instance with other applications and want to avoid key collisions. The default prefix is
+   * "@upstash/ratelimit"
+   */
+  prefix: "@upstash/ratelimit",
+});
+
 export const postRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
       take: 100,
+      orderBy: { createdAt: "desc" },
     });
 
     const users = (
@@ -63,11 +80,18 @@ export const postRouter = createTRPCRouter({
   create: privateProcedure
     .input(
       z.object({
-        content: z.string().emoji().min(1).max(100),
+        content: z.string().emoji("Only emojis here 🙄").min(1).max(100),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const authorId = ctx.currentUser;
+      const { success } = await ratelimit.limit(authorId);
+
+      if (!success)
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "You have exceeded the rate limit",
+        });
 
       const post = await ctx.db.post.create({
         data: {

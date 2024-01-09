@@ -7,6 +7,7 @@ import { Space_Grotesk } from "next/font/google";
 import Head from "next/head";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "~/components/global/theme-provider";
+import { Toaster } from "react-hot-toast";
 
 const fonts = Space_Grotesk({
   weight: ["400", "700"],
@@ -19,8 +20,8 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <main className={fonts.className}>
       <Head>
-        <title>NextAuth.js Example</title>
-        <meta name="description" content="NextAuth.js Example" />
+        <title>T3 Git</title>
+        <meta name="description" content="T3 Git" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex items-start">
@@ -32,6 +33,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
             disableTransitionOnChange
           >
             <ClerkProvider>
+              <Toaster position="top-center" />
               <Component {...pageProps} />
             </ClerkProvider>
           </ThemeProvider>
