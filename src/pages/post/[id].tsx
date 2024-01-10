@@ -1,9 +1,5 @@
-import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import Head from "next/head";
-import Image from "next/image";
 import { type NextPage } from "next";
-import { useTheme } from "next-themes";
-import { RouterOutputs, api } from "~/utils/api";
 
 const SinglePostPage: NextPage = () => {
   
