@@ -40,7 +40,7 @@ const CreatePostWizard = () => {
       // toast.error("Invalid Emoji 😢");
       const errorMessage = err.data?.zodError?.fieldErrors.content;
       console.log(errorMessage);
-      if (errorMessage && errorMessage[0]) toast.error(errorMessage[0]);
+      if (errorMessage && errorMessage[0]) toast?.error(errorMessage[0]);
       else toast.error("Something went wrong ❓");
     },
   });
