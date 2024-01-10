@@ -1,12 +1,30 @@
 import Head from "next/head";
 import Image from "next/image";
-import type { GetStaticProps, InferGetStaticPropsType, NextPage } from "next";
+import type { GetStaticProps, NextPage } from "next";
 import { api } from "~/utils/api";
+import { PostView } from "~/components/global/postview";
 
-type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
+const ProfileFeed = (props: { userId: string }) => {
+  const { data, isLoading } = api.post.getPostsByUserId.useQuery({
+    userId: props.userId,
+  });
+
+  if (isLoading) <LoadingPage />;
+
+  if (!data || data.length === 0) return <div>No Posts Here</div>;
+
+  return (
+    <div className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
+
 const SingleProfilePage: NextPage<{ username: string }> = ({ username }) => {
-  const { data, isLoading } = api.profile.getUserByUsername.useQuery({
-    username: "cao28cao",
+  const { data } = api.profile.getUserByUsername.useQuery({
+    username,
   });
 
   if (!data) return <div>404</div>;
@@ -26,7 +44,7 @@ const SingleProfilePage: NextPage<{ username: string }> = ({ username }) => {
             alt="Profile Image"
             width={96}
             height={96}
-            className="absolute bottom-0 left-0 -mb-16 ml-4 border-4 border-black bg-black ring-fuchsia-50"
+            className="absolute bottom-0 left-0 -mb-12 ml-4 border-4 border-black bg-black ring-fuchsia-50 rounded-full"
           />
         </div>
 
@@ -37,6 +55,7 @@ const SingleProfilePage: NextPage<{ username: string }> = ({ username }) => {
           </span>
         </div>
         <div className="w-full border-b border-slate-400" />
+        <ProfileFeed userId={data.id} />
       </PageLayout>
     </>
   );
@@ -47,6 +66,7 @@ import { appRouter } from "~/server/api/root";
 import { db } from "~/server/db";
 import superjson from "superjson";
 import { PageLayout } from "~/components/global/layout";
+import { LoadingPage } from "~/components/global/loading";
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = createServerSideHelpers({
