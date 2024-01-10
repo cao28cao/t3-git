@@ -1,6 +1,5 @@
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import Head from "next/head";
-import Link from "next/link";
 import Image from "next/image";
 
 import { Button } from "~/components/ui/button";
@@ -8,8 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
@@ -28,14 +25,12 @@ import { PostView } from "~/components/global/postview";
 
 dayjs.extend(relativeTime);
 
-
-
 const CreatePostWizard = () => {
   const { user } = useUser();
+  const [input, setInput] = useState<string>("");
   console.log(user);
   if (!user) return null;
 
-  const [input, setInput] = useState<string>("");
   const { mutate, isLoading: isPosting } = api.post.create.useMutation({
     onSuccess: () => {
       setInput("");
@@ -96,7 +91,6 @@ const CreatePostWizard = () => {
   );
 };
 
-
 const Feed = () => {
   const { data, isLoading: postsLoading } = api.post.getAll.useQuery();
 
@@ -115,11 +109,11 @@ const Feed = () => {
 
 export default function Home() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const { setTheme } = useTheme();
+
   api.post.getAll.useQuery();
 
   if (!userLoaded) return <div />;
-
-  const { setTheme } = useTheme();
 
   return (
     <>
