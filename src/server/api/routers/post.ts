@@ -14,12 +14,11 @@ import { filterUserForClient } from "~/server/helper/filterUserForClient";
 import { Post } from "@prisma/client";
 
 const addUserDataToPosts = async (posts: Post[]) => {
-
   const userId = posts.map((post) => post.authorId);
   const users = (
     await clerkClient.users.getUserList({
       userId: userId,
-      limit: 100,
+      limit: 110,
     })
   ).map(filterUserForClient);
 
@@ -27,17 +26,26 @@ const addUserDataToPosts = async (posts: Post[]) => {
     const author = users.find((user) => user.id === post.authorId);
 
     if (!author) {
+      console.error("AUTHOR NOT FOUND", post);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Author not found",
+        message: `Author for post not found. POST ID: ${post.id}, USER ID: ${post.authorId}`,
       });
     }
-
+    if (!author.username) {
+      if (!author.externalUsername) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Author has no GitHub Account: ${author.id}`,
+        });
+      }
+      author.username = author.externalUsername;
+    }
     return {
       post,
       author: {
         ...author,
-        username: author.username,
+        username: author.username ?? "(username not found)",
       },
     };
   });
@@ -52,23 +60,27 @@ const ratelimit = new Ratelimit({
 });
 
 export const postRouter = createTRPCRouter({
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const post = await ctx.db.post.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return (await addUserDataToPosts([post]))[0];
+    }),
+
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
       take: 100,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }],
     });
-
-    const users = (
-      await clerkClient.users.getUserList({
-        userId: posts.map((post) => post.authorId),
-        limit: 100,
-      })
-    ).map(filterUserForClient);
-
-    console.log(users);
 
     return addUserDataToPosts(posts);
   }),
+  
 
   getLatest: publicProcedure.query(({ ctx }) => {
     return ctx.db.post.findFirst({

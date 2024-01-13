@@ -29,7 +29,7 @@ const CreatePostWizard = () => {
   const { user } = useUser();
   const [input, setInput] = useState<string>("");
   console.log(user);
-  if (!user) return null;
+  const ctx = api.useUtils();
 
   const { mutate, isLoading: isPosting } = api.post.create.useMutation({
     onSuccess: () => {
@@ -44,7 +44,8 @@ const CreatePostWizard = () => {
       else toast.error("Something went wrong ❓");
     },
   });
-  const ctx = api.useUtils();
+  if (!user) return null;
+
 
   return (
     <div className="mx-2 mt-4 flex flex-row items-center justify-center gap-2">
@@ -96,7 +97,7 @@ const Feed = () => {
 
   if (postsLoading) return <LoadingPage />;
 
-  if (!data) return <div>Something is not gud</div>;
+  if (!data) return <div className="flex flex-col text-2xl text-center justify-center">Sign In to see emoji spammer</div>;
 
   return (
     <div className="mt-4 border-t border-slate-200">
