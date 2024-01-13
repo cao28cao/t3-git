@@ -46,7 +46,6 @@ const CreatePostWizard = () => {
   });
   if (!user) return null;
 
-
   return (
     <div className="mx-2 mt-4 flex flex-row items-center justify-center gap-2">
       <Image
@@ -97,7 +96,12 @@ const Feed = () => {
 
   if (postsLoading) return <LoadingPage />;
 
-  if (!data) return <div className="flex flex-col text-2xl text-center justify-center">Sign In to see emoji spammer</div>;
+  if (!data)
+    return (
+      <div className="flex flex-col justify-center text-center text-2xl">
+        Sign In to see emoji spammer
+      </div>
+    );
 
   return (
     <div className="mt-4 border-t border-slate-200">
@@ -110,7 +114,7 @@ const Feed = () => {
 
 export default function Home() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   api.post.getAll.useQuery();
 
@@ -129,8 +133,11 @@ export default function Home() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
-                  <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <MoonIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                  {theme === "light" ? (
+                    <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+                  ) : (
+                    <MoonIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+                  )}
                   <span className="sr-only">Toggle theme</span>
                 </Button>
               </DropdownMenuTrigger>
