@@ -7,6 +7,8 @@ await import("./src/env.js");
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: true,
+  swcMinify: true,
+  output: "standalone",
   images: {
     domains: ["img.clerk.com"],
   },
@@ -20,6 +22,7 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  
 };
 
 export default config;
