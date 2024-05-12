@@ -10,7 +10,13 @@ const config = {
   swcMinify: true,
   output: "standalone",
   images: {
-    domains: ["img.clerk.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+        pathname: "**",
+      },
+    ],
   },
 
   /**
@@ -22,7 +28,6 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
-  
 };
 
 export default config;
